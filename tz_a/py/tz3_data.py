@@ -138,6 +138,8 @@ if __name__ == "__main__":
 
     data.drop(['RequestDate'], axis=1, inplace=True)
     print(data.info())
+    print(data.shape)
+    print(data.head(5))
 
     data.to_csv(r'D:\IIStudy\scientist_project\data\update_data.csv', encoding='utf-8')
 
