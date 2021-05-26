@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
@@ -25,7 +23,7 @@ if __name__ == "__main__":
     data["CreditSum"] = data["CreditSum"].fillna(0).astype(str)
     data["OrgStanding_N"] = data["OrgStanding_N"].fillna(0).astype(str)
     data["Employment"] = data["Employment"].fillna('нет данных').astype(str)
-    data["LivingRegionName"] = data["Employment"].fillna('нет данных').astype(str)
+    data["LivingRegionName"] = data["LivingRegionName"].fillna('нет данных').astype(str)
     data["otrasl_rabotodatelya"] = data["otrasl_rabotodatelya"].fillna('нет данных').astype(str)
     data["kolichestvo_rabotnikov_v_organizacii"] = data["kolichestvo_rabotnikov_v_organizacii"].fillna(
         'нет данных').astype(str)
