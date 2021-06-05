@@ -7,51 +7,47 @@ if __name__ == "__main__":
     # Размер дата фрейма
     print('Размер Dataframe: ', data.shape)
     print(data.head(5))
+    print(data.SignIP.unique())
+
+    # убираем дубликаты столбцов
+    data.drop("Employment.1", axis=1, inplace=True)
+    data.drop("TypeOfWork.1", axis=1, inplace=True)
+    data.drop("SignIP.1", axis=1, inplace=True)
 
     # Получаем обобщенную информацию о DataFrame
     print('\n\nИнформация о Dataframe df.info():')
     print(data.info())
 
-    # На оставшихся данных проведем нормализацию
-    object_features = ["NaturalPersonID", "RequestDate", "ProductName", "TypeOfWork", "Employment",
-                       "SignIP", "sex", "EducationStatus", "otrasl_rabotodatelya",
-                       "kolichestvo_rabotnikov_v_organizacii", "Employment.1", "LivingRegionName",
-                       "Residence", "IncomeDocumentKind", "HaveSalaryCard", "IsBankWorker", "TypeOfWork.1", "SignIP.1",
-                       "harakteristika_tekutschego_trudoustrojstva"]
-    float64_features = ["CreditSum", "OrgStanding_N"]
     # преобразуем nan
-    data["CreditSum"] = data["CreditSum"].fillna(0).astype(str)
-    data["OrgStanding_N"] = data["OrgStanding_N"].fillna(0).astype(str)
-    data["Employment"] = data["Employment"].fillna('нет данных').astype(str)
-    data["LivingRegionName"] = data["LivingRegionName"].fillna('нет данных').astype(str)
-    data["otrasl_rabotodatelya"] = data["otrasl_rabotodatelya"].fillna('нет данных').astype(str)
-    data["kolichestvo_rabotnikov_v_organizacii"] = data["kolichestvo_rabotnikov_v_organizacii"].fillna(
-        'нет данных').astype(str)
-    data["harakteristika_tekutschego_trudoustrojstva"] = data["harakteristika_tekutschego_trudoustrojstva"].fillna(
-        'нет данных').astype(str)
-    data["otrasl_rabotodatelya"] = data["otrasl_rabotodatelya"].fillna('нет данных').astype(str)
+    data['TypeOfWork'] = data.TypeOfWork.fillna('нет данных').astype(str)
+    data["Residence"] = data["Residence"].fillna('нет данных').astype(str)
+    data['SignIP'] = data.SignIP.fillna('нет данных').astype(str)
+    data = data.dropna()
 
     # меняем тип данных на float
     data["CreditSum"] = data["CreditSum"].str.replace(',', '.').astype(float)
     data["OrgStanding_N"] = data["OrgStanding_N"].str.replace(',', '.').astype(float)
     data["ConfirmedMonthlyIncome (Target)"] = data["ConfirmedMonthlyIncome (Target)"].str.replace(',', '.').astype(
         float)
-    data["Residence"] = data["Residence"].fillna('нет данных').astype(str)
-    # убираем дубликаты столбцов
-    data.drop("Employment.1", axis=1, inplace=True)
-    data.drop("TypeOfWork.1", axis=1, inplace=True)
-    data.drop("SignIP.1", axis=1, inplace=True)
 
     label = LabelEncoder()
     dicts = {}
 
-    label.fit(data.sex)
-    dicts['sex'] = list(label.classes_)
-    data.sex = label.transform(data.sex)
-
     label.fit(data.otrasl_rabotodatelya)
     dicts['otrasl_rabotodatelya'] = list(label.classes_)
     data.otrasl_rabotodatelya = label.transform(data.otrasl_rabotodatelya)
+
+    # one_encode = pd.get_dummies(data.otrasl_rabotodatelya, prefix='otrasl_rabotodatelya').astype(int)
+    # one_encode = pd.DataFrame(one_encode)
+    # data = pd.concat([data, one_encode], axis=1).drop(['otrasl_rabotodatelya'], axis=1)
+
+    label.fit(data.IncomeDocumentKind)
+    dicts['IncomeDocumentKind'] = list(label.classes_)
+    data.IncomeDocumentKind = label.transform(data.IncomeDocumentKind)
+
+    # one_encode = pd.get_dummies(data['IncomeDocumentKind'],prefix='IncomeDocumentKind').astype(int)
+    # one_encode = pd.DataFrame(one_encode)
+    # data = pd.concat([data, one_encode], axis=1).drop(['IncomeDocumentKind'], axis=1)
 
     label.fit(data.LivingRegionName)
     dicts['LivingRegionName'] = list(label.classes_)
@@ -82,10 +78,23 @@ if __name__ == "__main__":
         'нет данных': 0
     }
 
-    # sex_dict = {
-    #     'Женский': 1,
-    #     'Мужской': 2
-    # }
+    sign_ip = {
+        'нет данных': 0,
+        'ИП': 1
+    }
+
+    type_of_work = {
+        'нет данных': 0,
+        'Собственное дело': 3,
+        'по найму': 1,
+        'Индивидуальный предприниматель': 4,
+        'Агент на комиссионом договоре': 2
+    }
+
+    sex_dict = {
+        'Женский': 1,
+        'Мужской': 2
+    }
     product_name = {
         'Кредит на потребительские нужды': 1,
         'Кредитная карта': 2
@@ -123,8 +132,10 @@ if __name__ == "__main__":
         'да': 1
     }
 
+    data.SignIP = data.SignIP.replace(to_replace=sign_ip)
+    data['TypeOfWork'] = data.TypeOfWork.replace(to_replace=type_of_work)
     data.Residence = data.Residence.replace(to_replace=residence_dict)
-    # data.sex = data.sex.replace(to_replace=sex_dict)
+    data.sex = data.sex.replace(to_replace=sex_dict)
     data.ProductName = data.ProductName.replace(to_replace=product_name)
     data.IsBankWorker = data.IsBankWorker.replace(to_replace=bank_worker)
     data.kolichestvo_rabotnikov_v_organizacii = data.kolichestvo_rabotnikov_v_organizacii.replace(
@@ -140,13 +151,3 @@ if __name__ == "__main__":
     print(data.head(5))
 
     data.to_csv(r'D:\IIStudy\scientist_project\data\update_data.csv', encoding='utf-8')
-
-    # continouns_features = set(data.columns) - set(object_features)
-    # # continouns_features = set(float64_features)
-    # min_max_scaler = MinMaxScaler()
-    # data_norm = data.copy()
-    # print(data_norm.info())
-    # data_norm[list(continouns_features)] = min_max_scaler.fit_transform(data[list(continouns_features)])
-    #
-    # corrCoef = data_norm.corr()
-    # data_norm.corr().style.format("{:.2}").background_gradient(cmap='coolwarm', axis=1)
